@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 56e910148f4d9034cae1b5e1589d1d5a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Flip: {instanceID: 0}
+  - HandleHit: {instanceID: 0}
+  - CutObstacle: {fileID: 8300000, guid: 0cb40ec9ea589334ebd25c396380ccd6, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,61 +1,52 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Obs3DCollider : MonoBehaviour , IResetable
+using DivingGame.Controller;
+namespace DivingGame.Obstacles{
+public class Obs3DCollider : MonoBehaviour 
 {
     [SerializeField]private GameObject mesh1;
     [SerializeField]private GameObject mesh2;
 
+    public bool changeColorOnHit=false;
+    public int hitPoint=10;
+
     private List<Vector3> positions = new List<Vector3>();
     private List<Quaternion> rotations = new List<Quaternion>();
+
+     PlayerAudioManager audioPlayer;
     // Start is called before the first frame update
     void Start()
     {
-        positions.Add(mesh1.transform.position);
-        positions.Add(mesh2.transform.position);
+        SetPositions();
+       // audioPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerAudioManager> () ;
 
-        rotations.Add(mesh1.transform.rotation);
-        rotations.Add(mesh2.transform.rotation);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            Vector3 newVelocty = new Vector3(0f, 0f, 30f);
-
-            mesh1.GetComponent<Rigidbody>().velocity = newVelocty;
-            newVelocty.z = -newVelocty.z;
-            mesh2.GetComponent<Rigidbody>().velocity = newVelocty;
-        }
-    }
 
     private void OnTriggerEnter(Collider other)
     {
+
         if (other.tag == "Player")
         {
             Debug.Log("yes it hit it");
-           // KnifeCollider knifeScript = collision.GetComponent<KnifeCollider>();
-          //  knifeScript.PlayerMovement.cutObstacle();
-
-          //  PlayerAudioManager audioPlayer = knifeScript.PlayerMovement.GetComponent<PlayerAudioManager>();
+        
+          
            // audioPlayer.PlayClip(audioPlayer.clips.CutObstacle, 0.7f);
 
-            GetComponent<BoxCollider>().enabled = false;
+           
 
-            addBodies();
+           if(other.GetComponent<Player>().isSpinning) {GetComponent<BoxCollider>().enabled = false; SplitStuff(); ScoreManager.instance.AddPoint(hitPoint) ;  } else
+           {
+               GetComponent<BoxCollider>().isTrigger=false;
+           }
         }
-        // else if (collision.name == "HandleCollider")
-        // {
-        //     collision.GetComponent<HandleCollider>().PlayerMovement.jumpFlip(false);
-        // }
+       
     }
 
     
 
-    private void addBodies()
+    public  void SplitStuff()
     {
        
         Rigidbody body1 = mesh1.AddComponent<Rigidbody>();
@@ -72,21 +63,34 @@ public class Obs3DCollider : MonoBehaviour , IResetable
         body1.velocity = newVelocty;
         newVelocty.x = -newVelocty.x;
         body2.velocity = newVelocty;
+      if(changeColorOnHit) { mesh1.GetComponent<Renderer>().material.color = Color.red;
+         mesh2.GetComponent<Renderer>().material.color = Color.red;}
          StartCoroutine(mesh1.GetComponent<TriangleExplosion>().SplitMesh(true));
         StartCoroutine(mesh2.GetComponent<TriangleExplosion>().SplitMesh(true));
     }
 
-    public void ResetBehavior()
+    // public void ResetBehavior()
+    // {
+    //     if(mesh1.GetComponent<Rigidbody>() != null)
+    //     {
+    //         Destroy(mesh1.GetComponent<Rigidbody>());
+    //         Destroy(mesh2.GetComponent<Rigidbody>());
+    //     }
+
+    //     GetComponent<BoxCollider2D>().enabled = true;
+
+    //     mesh1.transform.SetPositionAndRotation(positions[0], rotations[0]);
+    //     mesh2.transform.SetPositionAndRotation(positions[1], rotations[1]);
+    // }
+
+
+    void SetPositions()
     {
-        if(mesh1.GetComponent<Rigidbody>() != null)
-        {
-            Destroy(mesh1.GetComponent<Rigidbody>());
-            Destroy(mesh2.GetComponent<Rigidbody>());
-        }
+        positions.Add(mesh1.transform.position);
+        positions.Add(mesh2.transform.position);
 
-        GetComponent<BoxCollider2D>().enabled = true;
-
-        mesh1.transform.SetPositionAndRotation(positions[0], rotations[0]);
-        mesh2.transform.SetPositionAndRotation(positions[1], rotations[1]);
+        rotations.Add(mesh1.transform.rotation);
+        rotations.Add(mesh2.transform.rotation);
     }
+}
 }

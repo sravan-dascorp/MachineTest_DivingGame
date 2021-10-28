@@ -4,7 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/DivingGame.unity
+    guid: 95929d4f8471d1545908f7925806f954
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 3a31f553fb937f94d8f7741e9f0b03e6,
       type: 2}

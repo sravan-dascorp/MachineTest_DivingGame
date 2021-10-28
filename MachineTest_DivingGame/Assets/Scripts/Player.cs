@@ -5,12 +5,23 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 
+public enum PlayerState
+{
+    idle,falling,Spinning,underwater
+}
+namespace DivingGame.Controller{
 public class Player : MonoBehaviour
 {
-    public float force;
-    public bool isWin = false;
-    public bool isLost = false;
+    [SerializeField] bool useGravity=false;
+    [SerializeField] bool useDrag;
+    [SerializeField] float dragWhenSpin=1f;
+    [SerializeField] float dragNormalState;
+     public float force;
+    public bool levelWon = false;
+    public bool levelfailed = false;
     public Text text;
+
+    public bool isSpinning{get =>  _animator.GetBool("isSpin");}
     
 
     private Rigidbody _rb;
@@ -28,7 +39,9 @@ public class Player : MonoBehaviour
     CapsuleCollider capCollider; 
 
     float colliderHeight;
+    PlayerAudioManager audioplayer;
 
+    bool hitWaterUpdated = false;
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -36,6 +49,8 @@ public class Player : MonoBehaviour
         _waterSurface = GameObject.FindGameObjectWithTag("Water Volume");
         capCollider =  this.GetComponent<CapsuleCollider>();
         colliderHeight= capCollider.height;
+        audioplayer = GetComponent<PlayerAudioManager>();
+        
 
     }
 
@@ -90,43 +105,61 @@ public class Player : MonoBehaviour
                 _spinPlayed = true;
             }
 
+       
+       
         _currentCamPos = Camera.main.transform.position;
+
+
+        if(isSpinning){transform.GetChild(0).GetComponent<Renderer>().material.color = Color.red;  } else transform.GetChild(0).GetComponent<Renderer>().material.color = Color.green; //audioplayer.PlayClip(audioplayer.clips.Flip, 0.7f);
 
     }
 
+
+
+
+//using drag instead of custom gravity 
  void FixedUpdate() {
-            if(_animator.GetBool("isSpin")) _rb.drag=1; else  _rb.drag=0;
+            if(_animator.GetBool("isSpin")) _rb.drag=1 ; else  _rb.drag=0;
         }
    
     
 
     private void OnTriggerEnter(Collider other)
     {
+        if(other.CompareTag("Obstacle") && !isSpinning){
+            other.isTrigger = false;
+            levelfailed = true;
+                text.text = "Smashed ";
+                _animator.SetBool("isFall", true);}
+
+
+          if(other.CompareTag("Obstacle") && isSpinning)audioplayer.PlayClip(audioplayer.clips.BlowObstacle, 0.7f);     
         if (other.gameObject == _waterSurface)
         {
+         if(!hitWaterUpdated){   GetComponent<WaterSernsor>().setHitPosition(transform.position.y,true); hitWaterUpdated=true; }
             Camera.main.GetComponent<CameraFollow>().smoothSpeed = 0;
             _isJumping = false;
 
-            if(!isWin)
+            if(!levelWon)
             {
-                isLost = true;
+                levelfailed = true;
                 text.text = "Try Again..";
                 _animator.SetBool("isFall", true);
             }
 
-            if(isWin && !_spinPlayed)
+            if(levelWon && !_spinPlayed)
             {
-                ScoreManager.instance.AddPoint();
+                ScoreManager.instance.AddPoint(5);
                 _animator.SetBool("isVictory", true);
                 text.text = "Success!";
                _rb.constraints =  RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX ; 
             }
 
-            if(isWin && _spinPlayed)
+            if(levelWon && _spinPlayed)
             {
-                ScoreManager.instance.AddBonusPoint();
+                ScoreManager.instance.AddBonusPoint(10);
                 _animator.SetBool("isVictory", true);
-                text.text = "Bonus Point!";
+                text.text = "Spin Point!";
                 _rb.constraints =  RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX ; 
             }
         }
@@ -135,18 +168,21 @@ public class Player : MonoBehaviour
     }
 
     private void OnCollisionEnter(Collision other) {
-          if(other.gameObject !=_waterSurface && other.gameObject !=_startBoard && other.transform.tag!= "Obstacle" && other.transform.tag!= "Obstacle");
-        {
-            isLost = true;
-                text.text = "Try Again..";
+          if(other.gameObject !=_waterSurface && other.gameObject !=_startBoard )
+          {
+       
+            print(other.gameObject.name);
+            levelfailed = true;
+               // text.text = "Try Again..";
                 _animator.SetBool("isFall", true);
-        }
+          }
+        
         // if(other.gameObject ==_startBoard && _animator.GetBool("isJumping"))
         // {
         //      _animator.SetBool("isJumping", false); 
         //      _animator.SetBool("isReady", false);
         //       CapsuleCollider collider =  this.GetComponent<CapsuleCollider>();
-        //     collider.height = collider.height*2; 
+        //     collider.height = *2; 
              
             
         // }
@@ -176,4 +212,5 @@ public class Player : MonoBehaviour
         return results.Count > 0;
     }
 
+}
 }

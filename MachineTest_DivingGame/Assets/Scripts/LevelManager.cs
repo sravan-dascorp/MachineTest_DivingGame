@@ -8,7 +8,7 @@ public class LevelManager : MonoBehaviour
     public Transform player;
     public void RestartButton()
     {
-        SceneManager.LoadScene("scene_01");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void QuitButton()
